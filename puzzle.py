@@ -1,9 +1,8 @@
 """Puzzle generator."""
 
 import matplotlib.pyplot as plt
-from feynman import Diagram, Vertex
+from feynman import Diagram, Vertex, RegularBubbleOperator
 from typing import Self
-from collections import namedtuple
 import numpy as np
 
 CM = 1 / 2.54  # centimeters in inches
@@ -13,7 +12,11 @@ TILESIZE = np.array([SIZE, SIZE])
 
 FERMION = 0.1 * SIZE
 
-ARROW_PARAM = {"t": (0.5 * SIZE - FERMION) / SIZE, "width":0.1*SIZE, "length": 0.3*SIZE}
+ARROW_PARAM = {
+    "t": (0.5 * SIZE - FERMION) / SIZE,
+    "width": 0.1 * SIZE,
+    "length": 0.3 * SIZE,
+}
 
 
 def corners(d: Diagram, xy: tuple[float, float]):
@@ -218,8 +221,37 @@ def draw_tiles(
     return out
 
 
+def pdf(
+    d: Diagram, xy: tuple[float, float], size: float, dx: float, dy: float
+) -> RegularBubbleOperator:
+    """PDF."""
+    k = 24
+    op = RegularBubbleOperator(k, xy, size, 0.25, fc="None")
+    d.add_operator(op)
+    d.line(
+        d.vertex(xy=(0.0, op.vertices[k // 4 + 1].y), marker=""),
+        op.vertices[k // 4 + 1],
+    )
+    d.line(d.vertex(xy=(0.0, op.vertices[k // 4].y), marker=""), op.vertices[k // 4])
+    d.line(
+        d.vertex(xy=(0.0, op.vertices[k // 4 - 1].y), marker=""),
+        op.vertices[k // 4 - 1],
+    )
+    d.line(
+        op.vertices[k // 4 * 3 + 1],
+        d.vertex(xy=(dx, op.vertices[k // 4 * 3 + 1].y + dy), marker=""),
+    )
+    v = d.vertex(xy=(dx, op.vertices[k // 4 * 3].y), marker="")
+    d.line(op.vertices[k // 4 * 3], v)
+    d.line(
+        op.vertices[k // 4 * 3 - 1],
+        d.vertex(xy=(dx, op.vertices[k // 4 * 3 - 1].y - dy), marker=""),
+    )
+    return op
+
+
 def dy_tiles(ver: int = 0) -> list[list[TileConfig]]:
-    """Drell-Yan variants."""
+    """Drell-Yan variant tiles."""
     # ver = 0
     m = [
         [
@@ -269,12 +301,33 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     """Surrounding layout."""
     # final state
     phi = tiles[1][2].walls["e"]
-    pho = d.vertex(phi.xy, dx=SIZE/2., marker="")
+    pho = d.vertex(phi.xy, dx=SIZE / 2.0, marker="")
     d.line(phi, pho, flavour="wiggly", nwiggles=2.5)
-    fo = d.vertex(phi.xy, dx=SIZE,dy=SIZE/2., marker="")
-    afo = d.vertex(phi.xy, dx=SIZE,dy=-SIZE/2., marker="")
+    fo = d.vertex(phi.xy, dx=SIZE, dy=SIZE / 2.0, marker="")
+    afo = d.vertex(phi.xy, dx=SIZE, dy=-SIZE / 2.0, marker="")
     d.line(fo, pho, arrow_param=ARROW_PARAM)
     d.line(pho, afo, arrow_param=ARROW_PARAM)
+    # initial state
+    xy1 = tiles[0][0].v1.xy
+    pdf1 = pdf(d, (xy1[0] / 2.0, xy1[1] / 2.0), SIZE * 0.25, xy1[0], 0.2)
+    d.line(
+        pdf1.vertices[-2],
+        tiles[0][0].walls["w"],
+        arrow_param=ARROW_PARAM,
+        shape="elliptic",
+        ellipse_excentricity=1.8,
+        ellipse_spread=0.25,
+    )
+    xy2 = tiles[2][0].v3.xy
+    pdf2 = pdf(d, (xy2[0] / 2.0, (FIGSIZE[1] + xy2[1]) / 2.0), SIZE * 0.25, xy1[0], 0.2)
+    d.line(
+        tiles[2][0].walls["w"],
+        pdf2.vertices[14],
+        arrow_param=ARROW_PARAM,
+        shape="elliptic",
+        ellipse_excentricity=1.8,
+        ellipse_spread=0.25,
+    )
 
 
 def dy(ver: int = 0):
