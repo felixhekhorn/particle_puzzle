@@ -226,7 +226,7 @@ def pdf(
 ) -> RegularBubbleOperator:
     """PDF."""
     k = 24
-    op = RegularBubbleOperator(k, xy, size, 0.25, fc="None")
+    op = RegularBubbleOperator(k, xy, size, 0.25, facecolor="None")
     d.add_operator(op)
     d.line(
         d.vertex(xy=(0.0, op.vertices[k // 4 + 1].y), marker=""),
@@ -328,6 +328,8 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
         ellipse_excentricity=1.8,
         ellipse_spread=0.25,
     )
+    # text
+    d.text(FIGSIZE[0]*0.5, FIGSIZE[1]*0.92, "Drell-Yan process", fontsize=37)
 
 
 def dy(ver: int = 0):
