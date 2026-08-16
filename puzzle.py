@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from feynman import Diagram, Vertex, RegularBubbleOperator
 from typing import Self
 import numpy as np
+from PIL import Image
 
 CM = 1 / 2.54  # centimeters in inches
 FIGSIZE = np.array([29.7 * CM, 21 * CM])
@@ -303,11 +304,13 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     # final state
     phi = tiles[1][2].walls["e"]
     pho = d.vertex(phi.xy, dx=SIZE / 2.0, marker="")
-    d.line(phi, pho, flavour="wiggly", nwiggles=2.5).text(r"$\gamma/Z/W$", y=0.11, t=0.2, fontsize=20)
+    d.line(phi, pho, flavour="wiggly", nwiggles=2.5).text(
+        r"$\gamma/Z/W$", y=0.11, t=0.2, fontsize=20
+    )
     fo = d.vertex(phi.xy, dx=SIZE, dy=SIZE / 2.0, marker="")
-    fo.text(r"$\bar{l}$",x=0.1,fontsize=20)
+    fo.text(r"$\bar{l}$", x=0.1, fontsize=20)
     afo = d.vertex(phi.xy, dx=SIZE, dy=-SIZE / 2.0, marker="")
-    afo.text(r"$l'$",x=0.1,y=-0.025,fontsize=20)
+    afo.text(r"$l'$", x=0.1, y=-0.025, fontsize=20)
     d.line(fo, pho, arrow_param=ARROW_PARAM)
     d.line(pho, afo, arrow_param=ARROW_PARAM)
     # initial state
@@ -335,7 +338,7 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     d.text(FIGSIZE[0] * 0.5, FIGSIZE[1] * 0.92, "Drell-Yan process", fontsize=37)
     d.text(
         FIGSIZE[0] * 0.01,
-        FIGSIZE[1] * 0.72,
+        FIGSIZE[1] * 0.62,
         "Used for:",
         fontsize=25,
         va="top",
@@ -348,7 +351,16 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
           "  measurements\n"\
           "  (PDF, $m_W$)"
     # fmt: on
-    d.text(FIGSIZE[0] * 0.01, FIGSIZE[1] * 0.67, txt, fontsize=20, va="top", ha="left")
+    d.text(FIGSIZE[0] * 0.01, FIGSIZE[1] * 0.57, txt, fontsize=20, va="top", ha="left")
+    img1 = Image.open("DielectronsAll.png")
+    ax1 = d.ax.inset_axes([0.75, 0.65, 0.25, 0.25])
+    ax1.imshow(img1)
+    ax1.set(xticks=[], yticks=[])
+    img2 = Image.open("fig_11a.png")
+    ax2 = d.ax.inset_axes([0.75, 0.05, 0.25, 0.25])
+    ax2.imshow(img2)
+    ax2.set(xticks=[], yticks=[])
+    d.text(FIGSIZE[0] * 0.5, FIGSIZE[1] * 0.03, "Images: CMS collaboration; arXiv:2502.21088", fontsize=10)
 
 
 def dy(ver: int = 0):
