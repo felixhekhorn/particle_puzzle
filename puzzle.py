@@ -227,6 +227,7 @@ def pdf(
     """PDF."""
     k = 24
     op = RegularBubbleOperator(k, xy, size, 0.25, facecolor="None")
+    op.text("PDF", fontsize=20)
     d.add_operator(op)
     d.line(
         d.vertex(xy=(0.0, op.vertices[k // 4 + 1].y), marker=""),
@@ -302,9 +303,11 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     # final state
     phi = tiles[1][2].walls["e"]
     pho = d.vertex(phi.xy, dx=SIZE / 2.0, marker="")
-    d.line(phi, pho, flavour="wiggly", nwiggles=2.5)
+    d.line(phi, pho, flavour="wiggly", nwiggles=2.5).text(r"$\gamma/Z/W$", y=0.11, t=0.2, fontsize=20)
     fo = d.vertex(phi.xy, dx=SIZE, dy=SIZE / 2.0, marker="")
+    fo.text(r"$\bar{l}$",x=0.1,fontsize=20)
     afo = d.vertex(phi.xy, dx=SIZE, dy=-SIZE / 2.0, marker="")
+    afo.text(r"$l'$",x=0.1,y=-0.025,fontsize=20)
     d.line(fo, pho, arrow_param=ARROW_PARAM)
     d.line(pho, afo, arrow_param=ARROW_PARAM)
     # initial state
@@ -329,7 +332,23 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
         ellipse_spread=0.25,
     )
     # text
-    d.text(FIGSIZE[0]*0.5, FIGSIZE[1]*0.92, "Drell-Yan process", fontsize=37)
+    d.text(FIGSIZE[0] * 0.5, FIGSIZE[1] * 0.92, "Drell-Yan process", fontsize=37)
+    d.text(
+        FIGSIZE[0] * 0.01,
+        FIGSIZE[1] * 0.72,
+        "Used for:",
+        fontsize=25,
+        va="top",
+        ha="left",
+    )
+    # fmt: off
+    txt = "- Search for new\n"\
+          "  particles (Higgs)\n"\
+          "- precision\n"\
+          "  measurements\n"\
+          "  (PDF, $m_W$)"
+    # fmt: on
+    d.text(FIGSIZE[0] * 0.01, FIGSIZE[1] * 0.67, txt, fontsize=20, va="top", ha="left")
 
 
 def dy(ver: int = 0):
