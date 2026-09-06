@@ -176,7 +176,13 @@ class Tile:
                         self.fo,
                         arrow_param=ARROW_PARAM,
                         shape="elliptic",
-                        ellipse_excentricity=-1.0,
+                        ellipse_excentricity=1.0
+                        if self.fi.x < self.fo.x
+                        and (
+                            (self.fi.x < self.c.x and self.fi.y < self.fo.y)
+                            or (self.c.x < self.fo.x and self.fo.y < self.fi.y)
+                        )
+                        else -1.0,
                         ellipse_spread=0.25,
                     )
         # ew bosons
@@ -268,7 +274,36 @@ def dy_tiles(ver: int = 0) -> list[list[TileConfig]]:
             TileConfig(w="fi", n="fo"),
         ],
     ]
+    # ---------------
+    # |   ||   ||   |
+    # >--->>--->>-- |
+    # |   ||   || | |
+    # ------------v--
+    # ------------v--
+    # |   ||   || | |
+    # |   ||   || |-b
+    # |   ||   || | |
+    # ------------v--
+    # ------------v--
+    # |   ||   || | |
+    # <---<<---<<-- |
+    # |   ||   ||   |
+    # ---------------
     if ver == 1:
+        m = [
+            [
+                TileConfig(w="fi", e="fo"),
+                TileConfig(w="fi", e="fo"),
+                TileConfig(w="fi", s="fo"),
+            ],
+            [TileConfig(), TileConfig(), TileConfig(s="fo", n="fi", e="bo")],
+            [
+                TileConfig(w="fo", e="fi"),
+                TileConfig(w="fo", e="fi"),
+                TileConfig(w="fo", n="fi"),
+            ],
+        ]
+    elif ver == 2:
         m = [
             [TileConfig(w="fo", e="fi"), TileConfig(w="fo", s="fi"), TileConfig()],
             [
@@ -278,7 +313,7 @@ def dy_tiles(ver: int = 0) -> list[list[TileConfig]]:
             ],
             [TileConfig(w="fi", e="fo"), TileConfig(w="fi", n="fo"), TileConfig()],
         ]
-    elif ver == 2:
+    elif ver == 4:
         m = [
             [
                 TileConfig(w="fo", e="fi", s="gi"),
@@ -299,7 +334,7 @@ def dy_tiles(ver: int = 0) -> list[list[TileConfig]]:
     return m
 
 
-def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
+def dy_frame(d: Diagram, tiles: list[list[Tile]], ver1: bool) -> None:
     """Surrounding layout."""
     # final state
     phi = tiles[1][2].walls["e"]
@@ -317,21 +352,21 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     xy1 = tiles[0][0].v1.xy
     pdf1 = pdf(d, (xy1[0] / 2.0, xy1[1] / 2.0), SIZE * 0.25, xy1[0], 0.2)
     d.line(
-        pdf1.vertices[-2],
-        tiles[0][0].walls["w"],
+        pdf1.vertices[-2] if ver1 else tiles[0][0].walls["w"],
+        tiles[0][0].walls["w"] if ver1 else pdf1.vertices[-2],
         arrow_param=ARROW_PARAM,
         shape="elliptic",
-        ellipse_excentricity=1.8,
+        ellipse_excentricity=1.8 * (1 if ver1 else -1),
         ellipse_spread=0.25,
     )
     xy2 = tiles[2][0].v3.xy
     pdf2 = pdf(d, (xy2[0] / 2.0, (FIGSIZE[1] + xy2[1]) / 2.0), SIZE * 0.25, xy1[0], 0.2)
     d.line(
-        tiles[2][0].walls["w"],
-        pdf2.vertices[14],
+        tiles[2][0].walls["w"] if ver1 else pdf2.vertices[14],
+        pdf2.vertices[14] if ver1 else tiles[2][0].walls["w"],
         arrow_param=ARROW_PARAM,
         shape="elliptic",
-        ellipse_excentricity=1.8,
+        ellipse_excentricity=1.8 * (1 if ver1 else -1),
         ellipse_spread=0.25,
     )
     # text
@@ -360,14 +395,19 @@ def dy_frame(d: Diagram, tiles: list[list[Tile]]) -> None:
     ax2 = d.ax.inset_axes([0.75, 0.05, 0.25, 0.25])
     ax2.imshow(img2)
     ax2.set(xticks=[], yticks=[])
-    d.text(FIGSIZE[0] * 0.5, FIGSIZE[1] * 0.03, "Images: CMS collaboration; arXiv:2502.21088", fontsize=10)
+    d.text(
+        FIGSIZE[0] * 0.5,
+        FIGSIZE[1] * 0.03,
+        "Images: CMS collaboration; arXiv:2502.21088",
+        fontsize=10,
+    )
 
 
 def dy(ver: int = 0):
     """Drell-Yan."""
     diagram = Diagram(figsize=FIGSIZE)
     tiles = draw_tiles(diagram, (FIGSIZE - 3 * TILESIZE) / 2.0, dy_tiles(ver))
-    dy_frame(diagram, tiles)
+    dy_frame(diagram, tiles, ver % 2 == 0)
 
     # adjust size
     diagram.ax.set_xlim(0.0, FIGSIZE[0])
@@ -383,4 +423,4 @@ def dy(ver: int = 0):
 
 dy(0)
 dy(1)
-dy(2)
+# dy(2)
